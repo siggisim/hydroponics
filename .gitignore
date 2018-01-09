@@ -1,2 +1,5 @@
 *.sw?
+Gopkg.lock
+Gopkg.toml
 bazel-*
+vendor

@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["handler.go"],
+    importpath = "github.com/zenreach/hydroponics/internal/cache/httphandler",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/cache:go_default_library",
+        "@com_github_zenreach_hatchet//:go_default_library",
+    ],
+)

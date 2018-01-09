@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "config.go",
+        "logger.go",
+        "main.go",
+    ],
+    importpath = "github.com/zenreach/hydroponics/cmd/s3cache",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//internal/cache/httphandler:go_default_library",
+        "//internal/cache/s3:go_default_library",
+        "//internal/signals:go_default_library",
+        "@com_github_caarlos0_env//:go_default_library",
+        "@com_github_zenreach_hatchet//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "s3cache",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

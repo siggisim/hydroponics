@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "notify.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "signals_default.go",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "signals_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "signals_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "signals_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "signals_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "signals_default.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "signals_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "signals_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "signals_default.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "signals_default.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "signals_default.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "github.com/zenreach/hydroponics/internal/signals",
+    visibility = ["//:__subpackages__"],
+)
