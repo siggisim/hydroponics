@@ -1,1 +1,19 @@
 # gazelle:prefix github.com/zenreach/hydroponics
+
+filegroup(
+    name = "artifacts",
+    srcs = [
+        "//cmd/s3cache",
+        "LICENSE",
+    ],
+)
+
+genrule(
+    name = "release",
+    srcs = [":artifacts"],
+    outs = ["hydroponics.tar.gz"],
+    cmd = "./$(location release.sh) $(location hydroponics.tar.gz) $(locations :artifacts)",
+    tools = ["release.sh"],
+    output_to_bindir = True,
+    local = True,
+)
