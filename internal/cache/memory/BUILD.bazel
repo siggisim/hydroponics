@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["memory.go"],
+    importpath = "github.com/zenreach/hydroponics/internal/cache/memory",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/cache:go_default_library",
+        "@com_github_golang_groupcache//lru:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["memory_test.go"],
+    deps = [
+        ":go_default_library",
+        "//internal/cache:go_default_library",
+        "//internal/cache/cachetest:go_default_library",
+    ],
+)
