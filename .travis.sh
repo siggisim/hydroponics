@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 BAZEL_OS=linux
 BAZEL_VERSION=0.9.0
-BAZEL_ARGS="--output_base=$HOME/.cache/bazel --batch --host_jvm_args=-Xmx500m --host_jvm_args=-Xms500m"
+BAZEL_ARGS="--output_base=$HOME/.cache/bazel --batch --host_jvm_args=-Xmx2048m --host_jvm_args=-Xms512m"
 BAZEL_TEST_ARGS="--config=ci --local_resources=400,1,1.0"
 BAZEL_BUILD_ARGS="--config=ci --local_resources=400,1,1.0"
 
@@ -19,10 +19,10 @@ version() {
 }
 
 install_bazel() {
-	wget -o install.sh \
+	wget -O install.sh \
 		"https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-${BAZEL_OS}-x86_64.sh" || exit 1
 	chmod +x install.sh
-	./install.sh || exit 1
+	./install.sh --user || exit 1
 	rm install.sh
 }
 
@@ -35,7 +35,7 @@ build_release() {
 	mv bazel-bin/hydroponics.tar.gz "hydroponics-$(version).tar.gz"
 }
 
-case in "$1"
+case "$1" in
 install)
 	install_bazel
 	;;
