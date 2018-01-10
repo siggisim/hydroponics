@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -7,6 +7,18 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/cache:go_default_library",
+        "@com_github_zenreach_hatchet//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["handler_test.go"],
+    deps = [
+        ":go_default_library",
+        "//internal/cache:go_default_library",
+        "//internal/cache/cachetest:go_default_library",
+        "//internal/cache/memory:go_default_library",
         "@com_github_zenreach_hatchet//:go_default_library",
     ],
 )
