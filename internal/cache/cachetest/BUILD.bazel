@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["cachetest.go"],
+    importpath = "github.com/zenreach/hydroponics/internal/cache/cachetest",
+    visibility = ["//:__subpackages__"],
+    deps = ["//internal/cache:go_default_library"],
+)

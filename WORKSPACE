@@ -3,6 +3,7 @@ workspace(
 )
 
 rules_go_version = "985b08a07c3fe8c3a305bae8204da4e8c13fe17d"
+
 rules_go_sha = "f599a0ec2149b440a48bbab3240b303d15b5a48175ed76a2db15064e0202e36a"
 
 http_archive(
@@ -15,17 +16,18 @@ http_archive(
 load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_repository", "go_rules_dependencies")
 
 go_rules_dependencies()
+
 go_register_toolchains()
 
 go_repository(
     name = "com_github_aws_aws_sdk_go",
-    commit = "17f7ac9bc37dfdc9dbe19a7247f194e714426f90",
+    commit = "ae53883b2478fd8e2bdca2748367d5b5fa27ca22",
     importpath = "github.com/aws/aws-sdk-go",
 )
 
 go_repository(
     name = "com_github_caarlos0_env",
-    commit = "7cd7992b3bc86f920394f8de92c13900da1a46b7",
+    commit = "0cf029d5748c52beb2c9d20c81880cb4bdf8f788",
     importpath = "github.com/caarlos0/env",
 )
 
@@ -55,12 +57,18 @@ go_repository(
 
 go_repository(
     name = "com_github_pkg_errors",
-    commit = "e881fd58d78e04cf6d0de1217f8707c8cc2249bc",
+    commit = "c605e284fe17294bda444b34710735b29d1a9d90",
     importpath = "github.com/pkg/errors",
 )
 
 go_repository(
     name = "com_github_zenreach_hatchet",
-    commit = "b24e75c44d6837c4ad5ffd33b382023a04094efb",
+    commit = "a3c0cee4131339eda3c6b75cd0097c0b45b20bac",
     importpath = "github.com/zenreach/hatchet",
+)
+
+go_repository(
+    name = "com_github_golang_groupcache",
+    commit = "84a468cf14b4376def5d68c722b139b881c450a4",
+    importpath = "github.com/golang/groupcache",
 )
