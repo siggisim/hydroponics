@@ -1,0 +1,9 @@
+language: java
+os:
+- linux
+before_install:
+- ./.travis.sh install
+script:
+- ./.travis.sh test
+after_success:
+- ./.travis.sh build
