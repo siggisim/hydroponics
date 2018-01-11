@@ -2,8 +2,18 @@ language: java
 os:
 - linux
 before_install:
-- ./.travis.sh install
+- "./.travis.sh install"
 script:
-- ./.travis.sh test
+- "./.travis.sh test"
 after_success:
-- ./.travis.sh build
+- "./.travis.sh build"
+deploy:
+  provider: releases
+  api_key:
+    secure: qYH3njYWEXBq1jL2DfDiVyRdX8kEI65UyDJHpVBmGRqtbXyKgG43HEIFasaTCHxUVmgZtxQqy0q2+suiy/wCnJmMMnefBR5hygO4JALIfZXI7w49SBpvVbM9sN4cJxvfl8D4cNgDfTjrrqlKALcQsUBAUboGUS5E+NyfNjT7OQRo4M8VS49ToF1OOyi1T+uuNLww6IT8dHx9leY/cu3AgUanFXb/AZA3njlw0U5c4091JujCighBt7dIoo2nRLhaMDd3gJFMuxKq70EgkcRBuaeoOHQn17ID3mnBGfTJ6qElb2GQ6jVxRtnKQ0nsZ6Jsb6/IBMFHpKSS+NlyIC3kAFDtCyc0Gvx3Fij2oWSRaR5ZGpWKFHrZHH2OmHwwgtKrIJvxgvR4eAX0GZEYC7plbZM8zSb773CI15/9WlB/AZjH3nIKmh7VUCoG/Hfn0LhIzvI97o92aZXKlrSQm5vjf7RS6YfQYgDG1xwn74UMBJO0Oa2fxphT8EUSfBmDyclbeNLrUxcBJWmzxL+MnPlXBjeRrUjPJicoITLaubLffJuNakRERSNXWyOdl/U91FFRFm16OLGUYYHQRqZmPyP4a6JXBQ4u7AznbJQPO14cqiMjOGt7UKeyU68Retj31aqJjD4VZCK0FtjYHVkdDFFEuNKMAAxuwdKML60sF1WomqQ=
+  skip_cleanup: true
+  file_glob: true
+  file: hydroponics-*.tar.gz
+  on:
+    tags: true
+    repo: zenreach/hydroponics
