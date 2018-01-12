@@ -54,7 +54,7 @@ func (h *cacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		rdr, err := h.Cache.Get(ctx, key)
 		if err == cache.ErrCacheMiss {
-			h.logInfo(key, "cache miss")
+			h.logDebug(key, "cache miss")
 			httpError(w, http.StatusNotFound)
 			return
 		} else if err != nil {
@@ -70,24 +70,24 @@ func (h *cacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.logError(err, key, "write error")
 			return
 		}
-		h.logInfo(key, "cache hit")
+		h.logDebug(key, "cache hit")
 	case http.MethodPut:
 		err := h.Cache.Put(ctx, key, r.Body)
 		if err != nil {
 			h.logError(err, key, "cache error")
 			httpError(w, http.StatusInternalServerError)
 		}
-		h.logInfo(key, "cache put")
+		h.logDebug(key, "cache put")
 	default:
 		httpError(w, http.StatusMethodNotAllowed)
 	}
 }
 
-func (h *cacheHandler) logInfo(key, msg string) {
+func (h *cacheHandler) logDebug(key, msg string) {
 	h.Logger.Log(hatchet.L{
 		"message": msg,
 		"key":     key,
-		"level":   "info",
+		"level":   "debug",
 	})
 }
 

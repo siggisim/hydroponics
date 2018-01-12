@@ -7,21 +7,21 @@ import (
 	"time"
 
 	"github.com/zenreach/hatchet"
-	"github.com/zenreach/hydroponics/internal/cache/s3"
 	"github.com/zenreach/hydroponics/internal/cache/httphandler"
+	"github.com/zenreach/hydroponics/internal/cache/s3"
 	"github.com/zenreach/hydroponics/internal/signals"
 )
 
-
 func run() int {
-	logger := newLogger()
-	defer logger.Close()
-
+	logger := newLogger("")
 	cfg, err := parseConfig()
 	if err != nil {
 		logError(logger, err, "failed to parse config")
+		logger.Close()
 		return 1
 	}
+	logger = newLogger(cfg.LogLevel)
+	defer logger.Close()
 
 	cas, err := s3.New(cfg.CASBucket, cfg.CASPrefix)
 	if err != nil {
@@ -52,7 +52,7 @@ func run() int {
 			"level":   "info",
 			"address": cfg.Listen,
 		})
-		ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		err := server.Shutdown(ctx)
 		if err != nil {
 			shutdown <- err
@@ -60,6 +60,12 @@ func run() int {
 		cancel()
 		close(shutdown)
 	}()
+
+	logger.Log(hatchet.L{
+		"message": "configured cache",
+		"level":   "debug",
+		"config":  cfg,
+	})
 
 	logger.Log(hatchet.L{
 		"message": "start http server",
