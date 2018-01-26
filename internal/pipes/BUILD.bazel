@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "chunk.go",
+        "pipes.go",
+    ],
+    importpath = "github.com/zenreach/hydroponics/internal/pipes",
+    visibility = ["//:__subpackages__"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    size = "small",
+    srcs = ["pipes_test.go"],
+    deps = [":go_default_library"],
+)
