@@ -15,17 +15,20 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zenreach/hatchet"
 	"github.com/zenreach/hydroponics/internal/cache"
+	"github.com/zenreach/hydroponics/internal/pipes"
 )
 
 // Cache implements a cache backed by AWS S3.
 type Cache struct {
-	client   *s3.S3
-	uploader *s3manager.Uploader
-	clean    *regexp.Regexp
-	bucket   string
-	prefix   string
-	logger   hatchet.Logger
-	wg       *sync.WaitGroup
+	client     *s3.S3
+	uploader   *s3manager.Uploader
+	downloader *s3manager.Downloader
+	clean      *regexp.Regexp
+	bucket     string
+	prefix     string
+	logger     hatchet.Logger
+	shutdown   chan struct{}
+	wg         sync.WaitGroup
 }
 
 // New returns a new S3 cache which stores objects in the bucket with the given
@@ -45,14 +48,17 @@ func New(bucket, prefix string, logger hatchet.Logger) (*Cache, error) {
 	if l > 0 && prefix[l-1:] != "/" {
 		prefix = fmt.Sprintf("%s/", prefix)
 	}
+
+	client := s3.New(sesh)
 	return &Cache{
-		client:   s3.New(sesh),
-		uploader: s3manager.NewUploader(sesh),
-		clean:    regexp.MustCompile(`[^a-zA-Z0-9_-]`),
-		bucket:   bucket,
-		prefix:   prefix,
-		logger:   logger,
-		wg:       &sync.WaitGroup{},
+		client:     client,
+		uploader:   s3manager.NewUploaderWithClient(client),
+		downloader: s3manager.NewDownloaderWithClient(client),
+		clean:      regexp.MustCompile(`[^a-zA-Z0-9_-]`),
+		bucket:     bucket,
+		prefix:     prefix,
+		logger:     logger,
+		shutdown:   make(chan struct{}),
 	}, nil
 }
 
@@ -65,9 +71,12 @@ func (c *Cache) realKey(key string) string {
 }
 
 func (c *Cache) Get(ctx context.Context, key string) (io.ReadCloser, error) {
-	res, err := c.client.GetObjectWithContext(ctx, &s3.GetObjectInput{
+	realKey := c.realKey(key)
+
+	// check if the object exists
+	_, err := c.client.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
 		Bucket: sp(c.bucket),
-		Key:    sp(c.realKey(key)),
+		Key:    sp(realKey),
 	})
 	if isErrCode(err, s3.ErrCodeNoSuchKey) {
 		return nil, cache.ErrCacheMiss
@@ -77,8 +86,44 @@ func (c *Cache) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 		}
 		return nil, errors.Wrap(err, "aws client")
 	}
+
+	c.wg.Add(2)
+
+	// create a new context for the downloader that will be cancelled on shutdown
+	var downloadCtx context.Context
+	var downloadCancel context.CancelFunc
+	if deadline, ok := ctx.Deadline(); ok {
+		downloadCtx, downloadCancel = context.WithDeadline(context.Background(), deadline)
+	} else {
+		downloadCtx, downloadCancel = context.WithCancel(context.Background())
+	}
+
+	go func() {
+		select {
+		case <-c.shutdown:
+			downloadCancel()
+		case <-downloadCtx.Done():
+		}
+		c.wg.Done()
+	}()
+
+	// download the object concurrently
+	pipe := pipes.NewBlocks()
+	go func() {
+		defer downloadCancel()
+		_, err := c.downloader.DownloadWithContext(downloadCtx, pipe, &s3.GetObjectInput{
+			Bucket: sp(c.bucket),
+			Key:    sp(realKey),
+		})
+		if err == nil {
+			pipe.Close()
+		} else {
+			pipe.CloseWithError(err)
+		}
+		c.wg.Done()
+	}()
 	c.touch(key)
-	return res.Body, nil
+	return &nopCloser{pipe}, nil
 }
 
 func (c *Cache) Put(ctx context.Context, key string, data io.Reader) error {
@@ -94,6 +139,7 @@ func (c *Cache) Put(ctx context.Context, key string, data io.Reader) error {
 }
 
 func (c *Cache) Shutdown(ctx context.Context) error {
+	close(c.shutdown)
 	ch := make(chan struct{})
 	go func() {
 		c.wg.Wait()
