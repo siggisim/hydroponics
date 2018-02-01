@@ -78,9 +78,10 @@ func (c *Cache) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 		Bucket: sp(c.bucket),
 		Key:    sp(realKey),
 	})
-	if isErrCode(err, s3.ErrCodeNoSuchKey) {
+	if isErrCode(err, 404) {
 		return nil, cache.ErrCacheMiss
 	} else if err != nil {
+		fmt.Printf("%#v\n", err)
 		if err == ctx.Err() {
 			return nil, err
 		}
@@ -202,10 +203,10 @@ func sp(s string) *string {
 	return &s
 }
 
-func isErrCode(err error, code string) bool {
-	awsErr, ok := err.(awserr.Error)
+func isErrCode(err error, code int) bool {
+	awsErr, ok := err.(awserr.RequestFailure)
 	if !ok {
 		return false
 	}
-	return awsErr.Code() == code
+	return awsErr.StatusCode() == code
 }
