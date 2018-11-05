@@ -2,22 +2,25 @@ workspace(
     name = "com_zenreach_hydroponics",
 )
 
-rules_go_version = "985b08a07c3fe8c3a305bae8204da4e8c13fe17d"
-
-rules_go_sha = "f599a0ec2149b440a48bbab3240b303d15b5a48175ed76a2db15064e0202e36a"
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/archive/%s.tar.gz" % rules_go_version,
-    strip_prefix = "rules_go-%s" % rules_go_version,
-    sha256 = rules_go_sha,
+    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.0/rules_go-0.16.0.tar.gz"],
+    sha256 = "ee5fe78fe417c685ecb77a0a725dc9f6040ae5beb44a0ba4ddb55453aad23a8a",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_repository", "go_rules_dependencies")
-
+load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
 go_rules_dependencies()
-
 go_register_toolchains()
+
+http_archive(
+    name = "bazel_gazelle",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.14.0/bazel-gazelle-0.14.0.tar.gz"],
+    sha256 = "c0a5739d12c6d05b6c1ad56f2200cb0b57c5a70e03ebd2f7b87ce88cabf09c7b",
+)
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+gazelle_dependencies()
 
 go_repository(
     name = "com_github_aws_aws_sdk_go",
