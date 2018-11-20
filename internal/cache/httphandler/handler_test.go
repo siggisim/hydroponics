@@ -1,6 +1,8 @@
 package httphandler_test
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -117,9 +119,10 @@ func TestGetHit(t *testing.T) {
 func testGetHit(t *testEnv, svc *service) {
 	key := "exists"
 	want := []byte("existing value")
+	wantCmp := compress(want)
 
 	// load value into cache
-	cachetest.AssertPut(t.T, svc.Cache, key, want)
+	cachetest.AssertPut(t.T, svc.Cache, key, wantCmp)
 
 	// retrieve it via the handler
 	have := t.GetValue(svc, key)
@@ -149,6 +152,7 @@ func TestPutNew(t *testing.T) {
 func testPutNew(t *testEnv, svc *service) {
 	key := "new"
 	value := []byte("new value")
+	valueCmp := compress(value)
 
 	// put value via the handler
 	res := t.Put(svc, key, value)
@@ -157,7 +161,7 @@ func testPutNew(t *testEnv, svc *service) {
 	}
 
 	// verify in cache
-	cachetest.AssertGet(t.T, svc.Cache, key, value)
+	cachetest.AssertGet(t.T, svc.Cache, key, valueCmp)
 }
 
 func TestPutExisting(t *testing.T) {
@@ -168,17 +172,27 @@ func TestPutExisting(t *testing.T) {
 func testPutExisting(t *testEnv, svc *service) {
 	key := "new"
 	oldvalue := []byte("existing value")
+	oldvalueCmp := compress(oldvalue)
 
 	// load value into cache
-	cachetest.AssertPut(t.T, svc.Cache, key, oldvalue)
+	cachetest.AssertPut(t.T, svc.Cache, key, oldvalueCmp)
 
 	// put value via the handler
 	newvalue := []byte("new value")
+	newvalueCmp := compress(newvalue)
 	res := t.Put(svc, key, newvalue)
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("expected status code %d, got %d", http.StatusOK, res.StatusCode)
 	}
 
 	// verify in cache
-	cachetest.AssertGet(t.T, svc.Cache, key, newvalue)
+	cachetest.AssertGet(t.T, svc.Cache, key, newvalueCmp)
+}
+
+func compress(value []byte) []byte {
+	var buf bytes.Buffer
+	gzipper, _ := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+	gzipper.Write(value)
+	gzipper.Close()
+	return buf.Bytes()
 }
