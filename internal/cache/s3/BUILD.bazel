@@ -2,15 +2,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "io.go",
-        "s3.go",
-    ],
+    srcs = ["s3.go"],
     importpath = "github.com/zenreach/hydroponics/internal/cache/s3",
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/cache:go_default_library",
-        "//internal/pipes:go_default_library",
         "@com_github_aws_aws_sdk_go//aws/awserr:go_default_library",
         "@com_github_aws_aws_sdk_go//aws/session:go_default_library",
         "@com_github_aws_aws_sdk_go//service/s3:go_default_library",
